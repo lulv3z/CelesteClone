@@ -8,18 +8,20 @@
 // #############################################################################  
 static PFNGLCREATEPROGRAMPROC glCreateProgramm_ptr;
 
-void gl_load_functions()
+void* platform_load_gl_function(char* funName)
 {
     PROC proc = wglGetProcAddress("glCreateProgramm");
     if(!proc)
     {
-        SM_ASSERT(false, "Failed to load gl function %s", "glCreateProgramm")
+        static HMODULE openglDLL = LoadLibraryA("opengl32.dll");
+        proc = GetProcAddress(openglDLL, funName);
+
+        if(!proc)
+        {
+            SM_ASSERT(false, "Failed to load gl function %s", "glCreateProgramm")
+            return nullptr;
+        }
     }
 
-    glCreateProgramm_ptr = (PFNGLCREATEPROGRAMPROC)proc;
-}
-
-GLAPI GLuint APIENTRY glCreateProgramm(void)
-{
-    return glCreateProgramm_ptr();
+    return (void*)proc;
 }
